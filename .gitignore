@@ -1,0 +1,11 @@
+*.csv
+*.xlsx
+*.json
+*.pkl
+.env
+*.pickle
+*.log
+*.tar
+*.zip
+*.tar.gz
+__pycache__/

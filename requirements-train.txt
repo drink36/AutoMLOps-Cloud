@@ -1,0 +1,4 @@
+boto3
+sagemaker
+sagemaker-training
+s3fs
