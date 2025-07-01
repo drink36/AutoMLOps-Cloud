@@ -1,5 +1,8 @@
 
 # End-to-End MLOps Project: Customer Purchase Prediction on SageMaker
+[![CI/CD](https://github.com/drink36/SageMaker_Training/actions/workflows/main.yml/badge.svg)](https://github.com/drink36/SageMaker_Training/actions/workflows/main.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 [English](./README.md) | [中文](./README.zh-TW.md)
 ## ✨ 專案總覽
 
