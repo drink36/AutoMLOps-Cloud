@@ -4,30 +4,7 @@
 
 This project demonstrates a complete, end-to-end MLOps pipeline for predicting customer purchasing behavior, specifically forecasting the number of days until a customer's next purchase. The entire workflow, from data processing to model deployment, is built to run on **Amazon SageMaker**.
 
-Here’s a breakdown of its key components and functionality:
-
-1.  **Core Goal**: To predict the `OrderGapDays` (the time between a customer's orders) based on their transaction history.
-
-2.  **Data Processing**:
-    *   It uses the `Online_Retail.csv` dataset, which contains historical sales data.
-    *   The `trainer.py` script processes this raw data by calculating key features for each customer, such as their average time between purchases (`RollingAvgGap`), cumulative spending (`CumulativeTotalPrice`), and total order count. It also engineers time-based features (like month, day of the week) to capture seasonal patterns.
-    *   It includes a step to filter out outlier customers using an Isolation Forest algorithm to improve model accuracy.
-
-3.  **Modeling**:
-    *   The project is flexible and supports two different machine learning models, which can be chosen via a parameter:
-        *   **XGBoost**: A powerful and efficient gradient boosting model.
-        *   **PyTorch LSTM**: A Long Short-Term Memory neural network, which is well-suited for time-series forecasting.
-    *   The `model.py` script contains the logic for training both types of models.
-
-4.  **Training and Inference**:
-    *   The entire application is packaged into a **Docker container**, which can be run in two modes as defined by `entrypoint.sh`:
-        *   **`train` mode**: Executes the `train.py` script to train the chosen model on the processed data and saves the resulting model artifact (`model_artifact.pkl`).
-        *   **`inference` mode**: Launches a **Flask web server** using Gunicorn. This server loads the trained model and exposes an API endpoint (`/invocations`) to make predictions on new data.
-
-5.  **Automation (CI/CD)**:
-    *   The `.github/workflows/main.yml` file defines a GitLab CI/CD pipeline that automates the process of building the Docker image and pushing it to **Amazon ECR** (Elastic Container Registry), making it ready for deployment on SageMaker.
-
-In short, this is a complete, end-to-end SageMaker project that takes raw sales data, engineers predictive features, trains a model, and serves it via a web API to forecast when a customer will make their next purchase.
+This is a complete, end-to-end SageMaker project that takes raw sales data, engineers predictive features, trains a model, and serves it via a web API to forecast when a customer will make their next purchase.
 
 ## 🚀 Key Features
 
@@ -77,6 +54,24 @@ The entire machine learning lifecycle is automated and orchestrated by **AWS Ste
 4.  **Serving Predictions**: A final Lambda function processes the prediction results from S3 and writes them to a **DynamoDB** table, making them available for downstream applications or user-facing dashboards.
 
 This event-driven architecture ensures the entire process is automated, scalable, and includes built-in error handling and retry mechanisms via Step Functions.
+
+## 🔧 Setup and Configuration for CI/CD
+
+To enable the automated CI/CD workflow with GitHub Actions, you need to configure secrets and variables in your GitHub repository.
+
+1.  **Navigate to your repository settings:** Go to `Settings` > `Secrets and variables` > `Actions`.
+
+2.  **Add Repository Secrets:**
+    These are encrypted and should be used for sensitive information. Click `New repository secret` and add the following:
+    *   `AWS_ACCESS_KEY_ID`: Your AWS access key ID.
+    *   `AWS_SECRET_ACCESS_KEY`: Your AWS secret access key.
+    *   `PRIVATE_ACCOUNT_ID`: Your AWS Account ID.
+
+3.  **Add Repository Variable:**
+    This is used for non-sensitive configuration. Click the `Variables` tab and then `New repository variable`. Add the following:
+    *   `ECR_REPOSITORY_NAME`: The name you want for your ECR repository (e.g., `my-sagemaker-project`).
+
+Once these are configured, the GitHub Actions workflow in `.github/workflows/main.yml` will be able to securely authenticate with AWS and push the Docker image to your specified ECR repository.
 
 ## ➡️  How to Run Locally
 
