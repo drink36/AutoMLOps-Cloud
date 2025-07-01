@@ -7,13 +7,6 @@ case "${MODE}" in
     exec python train.py \
       --file_path                "${file_path}" \
       --time_series_length       "${time_series_length}" \
-      --epochs                   "${epochs}" \
-      --batch_size               "${batch_size}" \
-      --learning_rate            "${learning_rate}" \
-      --hidden_size              "${hidden_size}" \
-      --dropout                  "${dropout}" \
-      --lstm_layers              "${lstm_layers}" \
-      --use_gpu                  "${use_gpu}" \
       --model_backend            "${model_backend}" \
       --upload_sample_to_s3      "${upload_sample_to_s3}" \
       --sample_s3_bucket         "${sample_s3_bucket}" \

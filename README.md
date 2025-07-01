@@ -1,4 +1,5 @@
 # End-to-End MLOps Project: Customer Purchase Prediction on SageMaker
+[English](./README.md) | [中文](./README.zh-TW.md)
 
 ## ✨ Project Overview
 
