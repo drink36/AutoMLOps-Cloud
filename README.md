@@ -48,7 +48,7 @@ This decoupled design ensures that changes to the model or data processing logic
 
 The entire machine learning lifecycle is automated and orchestrated by **AWS Step Functions**.
 
-![MLOps Workflow](images/test-2.png)
+![MLOps Workflow](images/test-3.png)
 
 1.  **Data Source**: The workflow begins with preprocessed training data stored in a dedicated Amazon S3 bucket.
 2.  **Automated Model Training**: The Step Functions workflow initiates a **SageMaker Training Job**. The job uses the containerized application to pull the training data from S3, train the model, and save the resulting model artifact back to S3.
