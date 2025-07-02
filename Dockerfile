@@ -17,15 +17,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # 4. copy requirements and install python dependencies
-COPY requirements-common.txt requirements-train.txt requirements-infer.txt ./
+COPY src/requirements-common.txt ./
+COPY src/requirements-train.txt ./
+COPY src/requirements-infer.txt ./
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir -r requirements-common.txt && \
     pip install --no-cache-dir -r requirements-train.txt && \
     pip install --no-cache-dir -r requirements-infer.txt
 
 # 5. copy code and entrypoint script
-COPY . ${WORKDIR}
-COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY src/ ${WORKDIR}
+COPY src/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # 6. expose port 8080 for inference
