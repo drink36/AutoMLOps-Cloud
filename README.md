@@ -50,12 +50,12 @@ The entire machine learning lifecycle is automated and orchestrated by **AWS Ste
 
 ![MLOps Workflow](images/test-2.png)
 
-1.  **Data Extraction & Preprocessing**: A Lambda function is triggered to extract raw data from a source database (e.g., RDS). It performs initial preprocessing and uploads the cleaned data to an S3 bucket.
+1.  **Data Source**: The workflow begins with preprocessed training data stored in a dedicated Amazon S3 bucket.
 2.  **Automated Model Training**: The Step Functions workflow initiates a **SageMaker Training Job**. The job uses the containerized application to pull the training data from S3, train the model, and save the resulting model artifact back to S3.
 3.  **Automated Batch Prediction**:
     *   Upon successful training, a Lambda function is triggered to create a **SageMaker Model** from the saved artifact.
     *   It then automatically starts a **SageMaker Batch Transform** job, which uses the model to generate predictions on a new dataset and saves the results to S3.
-4.  **Serving Predictions**: A final Lambda function processes the prediction results from S3 and writes them to a **DynamoDB** table, making them available for downstream applications or user-facing dashboards.
+4.  **Prediction Storage**: The output from the batch transform job, containing the predictions, is saved to a final S3 bucket for analysis and review.
 
 This event-driven architecture ensures the entire process is automated, scalable, and includes built-in error handling and retry mechanisms via Step Functions.
 
