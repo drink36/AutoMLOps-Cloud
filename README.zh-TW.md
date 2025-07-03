@@ -21,6 +21,8 @@
 
 **關於資料集與架構的說明：** 本專案使用靜態的 UCI Online Retail 資料集來演示一個動態的、生產等級的 MLOps 架構。在真實世界的應用中，資料會來自一個即時的交易資料庫（如 AWS RDS）。這裡展示的架構由 AWS Step Functions 驅動，正是為了處理這種持續的資料流而設計，使其成為一個適用於即時顧客預測系統的穩健藍圖。UCI 資料集在此作為一個擬真的替代品，用以驗證整個端到端自動化流程的可行性。
 
+有關 AWS 配置（Lambda 函數、Step Functions）的詳細範例，請參閱 [AWS 範例 README](./aws/README.zh-TW.md)。
+
 專案的架構分為兩個層次：Docker 容器內的應用程式架構，以及在 AWS 上的雲端 MLOps 工作流程。
 
 ### 1. 程式碼與 Docker 架構

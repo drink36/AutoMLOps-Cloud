@@ -22,6 +22,8 @@ This is a complete, end-to-end SageMaker project that takes raw sales data, engi
 
 **Note on the Dataset and Architecture:** This project uses the static UCI Online Retail dataset to demonstrate a dynamic, production-grade MLOps architecture. In a real-world application, the data would originate from a live transactional database (like AWS RDS). The architecture presented here, orchestrated by AWS Step Functions, is designed to handle such a continuous data flow, making it a robust blueprint for a real-time customer prediction system. The UCI dataset serves as a realistic stand-in to validate the feasibility and automation of the end-to-end pipeline.
 
+For detailed examples of AWS configurations (Lambda functions, Step Functions), please refer to the [AWS Examples README](./aws/README.md).
+
 The project is designed with two distinct architectural layers: the application-level architecture within the Docker container, and the cloud-level MLOps workflow on AWS.
 
 ### 1. Code & Docker Architecture
