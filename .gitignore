@@ -1,6 +1,5 @@
 *.csv
 *.xlsx
-*.json
 *.pkl
 .env
 *.pickle

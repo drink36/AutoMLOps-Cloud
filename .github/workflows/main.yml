@@ -1,6 +1,4 @@
-# .github/workflows/main.yml
-
-name: SageMaker CI/CD
+name: SageMaker CI/CD Refactored
 
 on:
   push:
@@ -21,10 +19,10 @@ jobs:
       - name: Build Docker image for verification
         run: docker build -t test-img:${{ github.sha }} .
 
-  push-to-ecr-dev:
+  build-and-push-to-ecr:
     runs-on: ubuntu-latest
     needs: verify-build
-    if: github.ref != 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -45,7 +43,16 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      - name: Build and push dev image
+      - name: Determine ECR Tag
+        id: set_ecr_tag
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "ECR_TAG=latest" >> $GITHUB_OUTPUT
+          else
+            echo "ECR_TAG=dev" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build and push image
         uses: docker/build-push-action@v4
         with:
           context: .
@@ -54,43 +61,6 @@ jobs:
           provenance: false
           tags: |
             ${{ secrets.PRIVATE_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_DEFAULT_REGION }}.amazonaws.com/${{ vars.ECR_REPOSITORY_NAME }}:${{ github.sha }}
-            ${{ secrets.PRIVATE_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_DEFAULT_REGION }}.amazonaws.com/${{ vars.ECR_REPOSITORY_NAME }}:dev
-        env:
-          AWS_DEFAULT_REGION: ap-northeast-1
-
-  push-to-ecr-main:
-    runs-on: ubuntu-latest
-    needs: verify-build
-    if: github.ref == 'refs/heads/main'
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_DEFAULT_REGION }}
-        env:
-          AWS_DEFAULT_REGION: ap-northeast-1
-
-      - name: Log in to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      - name: Build and push main image
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          push: true
-          platforms: linux/amd64
-          provenance: false
-          tags: |
-            ${{ secrets.PRIVATE_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_DEFAULT_REGION }}.amazonaws.com/${{ vars.ECR_REPOSITORY_NAME }}:${{ github.sha }}
-            ${{ secrets.PRIVATE_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_DEFAULT_REGION }}.amazonaws.com/${{ vars.ECR_REPOSITORY_NAME }}:latest
+            ${{ secrets.PRIVATE_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_DEFAULT_REGION }}.amazonaws.com/${{ vars.ECR_REPOSITORY_NAME }}:${{ steps.set_ecr_tag.outputs.ECR_TAG }}
         env:
           AWS_DEFAULT_REGION: ap-northeast-1

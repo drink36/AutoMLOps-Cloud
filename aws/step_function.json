@@ -1,0 +1,113 @@
+{
+  "Comment": "一個通用的狀態機，它會遍歷一個項目列表，為每個項目觸發一個訓練作業，完成後再觸發一個批次轉換作業。",
+  "StartAt": "ProcessItems",
+  "States": {
+    "ProcessItems": {
+      "Type": "Map",
+      "ItemsPath": "$.itemList",
+      "Parameters": {
+        "item.$": "$$.Map.Item.Value",
+        "timestamp.$": "States.ArrayGetItem(States.StringSplit($$.Execution.Id, ':'), 7)"
+      },
+      "MaxConcurrency": 5,
+      "Iterator": {
+        "StartAt": "StartTrainingJob",
+        "States": {
+          "StartTrainingJob": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::sagemaker:createTrainingJob.sync",
+            "Parameters": {
+              "TrainingJobName.$": "States.Format('training-job-{}-{}', $.item, $.timestamp)",
+              "AlgorithmSpecification": {
+                "TrainingImage": "<YOUR_ECR_IMAGE_URI>",
+                "TrainingInputMode": "File"
+              },
+              "Environment": {
+                "MODE": "train",
+                "SAGEMAKER_PROGRAM": "train.py",
+                "file_path.$": "States.Format('s3://<YOUR_S3_BUCKET>/analysis_predict/{}/Online_Retail.csv', $.item)",
+                "time_series_length": "15",
+                "model_backend": "pytorch",
+                "upload_sample_to_s3": "True",
+                "sample_s3_bucket": "<YOUR_S3_BUCKET>",
+                "sample_s3_prefix.$": "States.Format('analysis_predicted/{}', $.item)",
+                "upload_model_to_s3": "True",
+                "model_s3_bucket": "<YOUR_S3_BUCKET>",
+                "model_s3_prefix.$": "States.Format('analysis_predicted/{}', $.item)"
+              },
+              "RoleArn": "<YOUR_SAGEMAKER_EXECUTION_ROLE_ARN>",
+              "OutputDataConfig": {
+                "S3OutputPath.$": "States.Format('s3://<YOUR_S3_BUCKET>/analysis_predicted/{}/', $.item)"
+              },
+              "ResourceConfig": {
+                "InstanceType": "ml.g4dn.xlarge",
+                "InstanceCount": 1,
+                "VolumeSizeInGB": 30
+              },
+              "StoppingCondition": {
+                "MaxRuntimeInSeconds": 600
+              }
+            },
+            "ResultPath": "$.trainingJobResult",
+            "Retry": [
+              {
+                "ErrorEquals": ["SageMaker.AmazonSageMakerException"],
+                "IntervalSeconds": 2,
+                "BackoffRate": 2,
+                "MaxAttempts": 5
+              }
+            ],
+            "Next": "CreateModel"
+          },
+          "CreateModel": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Parameters": {
+              "FunctionName": "<YOUR_LAMBDA_FUNCTION_ARN>",
+              "Payload": {
+                "item.$": "$.item"
+              }
+            },
+            "ResultPath": "$.createModelResult",
+            "Next": "StartBatchTransformJob"
+          },
+          "StartBatchTransformJob": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::sagemaker:createTransformJob.sync",
+            "Parameters": {
+              "TransformJobName.$": "States.Format('batch-transform-job-{}-{}', $.item, $.timestamp)",
+              "ModelName.$": "$.createModelResult.Payload.ModelName",
+              "TransformInput": {
+                "DataSource": {
+                  "S3DataSource": {
+                    "S3DataType": "S3Prefix",
+                    "S3Uri.$": "States.Format('s3://<YOUR_S3_BUCKET>/analysis_predicted/{}/sample_prediction.csv', $.item)"
+                  }
+                },
+                "ContentType": "text/csv",
+                "SplitType": "None"
+              },
+              "TransformOutput": {
+                "S3OutputPath.$": "States.Format('s3://<YOUR_S3_BUCKET>/analysis_predicted_out/{}', $.item)"
+              },
+              "TransformResources": {
+                "InstanceType": "ml.g4dn.xlarge",
+                "InstanceCount": 1
+              }
+            },
+            "Retry": [
+              {
+                "ErrorEquals": ["SageMaker.AmazonSageMakerException"],
+                "IntervalSeconds": 2,
+                "BackoffRate": 2,
+                "MaxAttempts": 5
+              }
+            ],
+            "End": true
+          }
+        }
+      },
+      "End": true
+    }
+  }
+}
